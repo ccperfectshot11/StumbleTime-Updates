@@ -53,7 +53,6 @@
     .form-group { margin-bottom: 14px; }
     label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
     
-    /* Password input wrapper for toggle eye */
     .password-wrapper {
       position: relative;
       display: flex;
@@ -69,13 +68,28 @@
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 1.2rem;
       padding: 0;
       color: var(--muted);
       transition: color 0.2s;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+    .toggle-password.visible {
+      opacity: 1;
+      visibility: visible;
     }
     .toggle-password:hover {
       color: var(--accent);
+    }
+    .toggle-password svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
     }
 
     input {
@@ -87,7 +101,6 @@
     input:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(155,93,229,0.2); }
     input::placeholder { color: var(--muted); font-weight: 400; }
 
-    /* Password strength bar */
     .strength-container {
       margin-top: 6px;
     }
@@ -96,7 +109,6 @@
       border-radius: 4px;
       background: var(--border);
       overflow: hidden;
-      transition: all 0.2s;
     }
     .strength-fill {
       width: 0%;
@@ -276,8 +288,8 @@
       <div class="form-group">
         <label>Password</label>
         <div class="password-wrapper">
-          <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password" />
-          <button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)">👁</button>
+          <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password" oninput="toggleEyeVisibility('loginPassword', 'toggleLoginEye')" />
+          <button type="button" class="toggle-password" id="toggleLoginEye" onclick="togglePassword('loginPassword', this)"></button>
         </div>
       </div>
       <button class="btn-primary" id="loginBtn" onclick="doLogin()">Log In</button>
@@ -295,8 +307,8 @@
       <div class="form-group">
         <label>Password</label>
         <div class="password-wrapper">
-          <input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password" oninput="updatePasswordStrength()" />
-          <button type="button" class="toggle-password" onclick="togglePassword('regPassword', this)">👁</button>
+          <input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password" oninput="toggleEyeVisibility('regPassword', 'toggleRegEye'); updatePasswordStrength()" />
+          <button type="button" class="toggle-password" id="toggleRegEye" onclick="togglePassword('regPassword', this)"></button>
         </div>
         <div class="strength-container" id="strengthContainer">
           <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
@@ -316,8 +328,8 @@
       <div class="form-group">
         <label>Confirm Password</label>
         <div class="password-wrapper">
-          <input type="password" id="regPassword2" placeholder="Repeat your password" />
-          <button type="button" class="toggle-password" onclick="togglePassword('regPassword2', this)">👁</button>
+          <input type="password" id="regPassword2" placeholder="Repeat your password" oninput="toggleEyeVisibility('regPassword2', 'toggleRegEye2')" />
+          <button type="button" class="toggle-password" id="toggleRegEye2" onclick="togglePassword('regPassword2', this)"></button>
         </div>
       </div>
       <button class="btn-primary" id="registerBtn" onclick="doRegister()">Create Account</button>
@@ -396,6 +408,61 @@
   let _token = null;
   let _username = null;
 
+  // SVG icons
+  const eyeOpenSVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const eyeClosedSVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>';
+
+  function initializeEyeButtons() {
+    // Set initial SVG and visibility based on input value
+    const eyeButtons = ['toggleLoginEye', 'toggleRegEye', 'toggleRegEye2'];
+    eyeButtons.forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        if (!btn.innerHTML) {
+          btn.innerHTML = eyeOpenSVG;
+        }
+        // Get corresponding input
+        let inputId = '';
+        if (id === 'toggleLoginEye') inputId = 'loginPassword';
+        else if (id === 'toggleRegEye') inputId = 'regPassword';
+        else if (id === 'toggleRegEye2') inputId = 'regPassword2';
+        
+        const input = document.getElementById(inputId);
+        if (input && input.value.length > 0) {
+          btn.classList.add('visible');
+        } else {
+          btn.classList.remove('visible');
+        }
+      }
+    });
+  }
+
+  function toggleEyeVisibility(inputId, btnId) {
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    if (input.value.length > 0) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+      // Also reset to password type and eye open icon when empty
+      if (input.type === 'text') {
+        input.type = 'password';
+        btn.innerHTML = eyeOpenSVG;
+      }
+    }
+  }
+
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.innerHTML = eyeClosedSVG;
+    } else {
+      input.type = 'password';
+      btn.innerHTML = eyeOpenSVG;
+    }
+  }
+
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -408,7 +475,10 @@
       b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
     });
     hideAlert();
-    if (tab === 'register') updatePasswordStrength();
+    if (tab === 'register') {
+      updatePasswordStrength();
+    }
+    setTimeout(initializeEyeButtons, 10);
   }
 
   function showAlert(msg, type = 'error') {
@@ -429,17 +499,6 @@
 
   function isValidEmail(email) {
     return /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(email);
-  }
-
-  function togglePassword(inputId, btn) {
-    const input = document.getElementById(inputId);
-    if (input.type === 'password') {
-      input.type = 'text';
-      btn.textContent = '🙈';
-    } else {
-      input.type = 'password';
-      btn.textContent = '👁';
-    }
   }
 
   function checkPasswordStrength(password) {
@@ -480,13 +539,10 @@
     fill.style.width = result.percent + '%';
     fill.style.backgroundColor = result.color;
     
-    const label = document.getElementById('strengthLabel');
     const scoreSpan = document.getElementById('strengthScore');
-    label.textContent = 'Password strength';
     scoreSpan.textContent = result.strength;
     scoreSpan.style.color = result.color;
     
-    // Update requirement indicators
     const reqs = ['reqLength', 'reqUpper', 'reqLower', 'reqNumber', 'reqSpecial'];
     const checks = [result.checks.length, result.checks.upper, result.checks.lower, result.checks.number, result.checks.special];
     const texts = ['At least 6 characters', 'Uppercase letter', 'Lowercase letter', 'Number', 'Special character'];
@@ -603,6 +659,7 @@
     document.getElementById('regPassword2').value = '';
     updatePasswordStrength();
     showScreen('screenAuth');
+    setTimeout(initializeEyeButtons, 10);
   }
 
   document.addEventListener('keydown', e => {
@@ -613,6 +670,8 @@
       loginVisible ? doLogin() : doRegister();
     } else if (s === 'screenOAuth') doAuthorize();
   });
+
+  initializeEyeButtons();
 </script>
 </body>
 </html>
