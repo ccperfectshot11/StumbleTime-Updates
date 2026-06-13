@@ -21,19 +21,15 @@
       overflow-x: hidden;
     }
 
-
-    /* ── SCREENS ── */
     .screen { display: none; position: relative; z-index: 1; width: 100%; max-width: 420px; }
     .screen.active { display: block; }
 
-    /* ── CARD ── */
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 20px; padding: 36px 32px;
       box-shadow: 0 24px 60px rgba(0,0,0,0.5);
     }
 
-    /* ── LOGO ── */
     .logo { text-align: center; margin-bottom: 24px; }
     .logo-title {
       font-family: 'Lilita One', cursive; font-size: 2rem;
@@ -42,7 +38,6 @@
     }
     .logo-sub { font-size: 0.75rem; color: var(--muted); margin-top: 3px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
 
-    /* ── TABS ── */
     .tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 24px; }
     .tab-btn {
       flex: 1; padding: 9px; border: none; border-radius: 7px; cursor: pointer;
@@ -54,7 +49,6 @@
       color: #fff; box-shadow: 0 4px 14px rgba(247,37,133,0.4);
     }
 
-    /* ── FORM ── */
     .form-group { margin-bottom: 14px; }
     label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
     input {
@@ -66,7 +60,6 @@
     input:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(155,93,229,0.2); }
     input::placeholder { color: var(--muted); font-weight: 400; }
 
-    /* ── BUTTONS ── */
     .btn-primary {
       width: 100%; padding: 12px; border: none; border-radius: var(--radius);
       background: linear-gradient(135deg, var(--accent2), var(--accent));
@@ -85,22 +78,10 @@
     }
     .btn-danger:hover { border-color: var(--danger); color: var(--danger); }
 
-    /* ── ALERT ── */
     .alert { border-radius: 10px; padding: 10px 14px; font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; display: none; }
     .alert.show { display: block; }
     .alert.error { background: rgba(255,79,109,0.12); border: 1px solid rgba(255,79,109,0.35); color: #ff7a92; }
     .alert.success { background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.3); color: var(--success); }
-
-    /* ── OAUTH SCREEN ── */
-    .oauth-app-icon {
-      width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 12px;
-      background: linear-gradient(135deg, var(--accent2), var(--accent));
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Lilita One', cursive; font-size: 1.6rem; color: #fff;
-    }
-    .oauth-title { font-family: 'Lilita One', cursive; font-size: 1.4rem; text-align: center; margin-bottom: 4px; }
-    .oauth-subtitle { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
-    .oauth-subtitle span { color: var(--accent); font-weight: 700; }
 
     .oauth-arrow {
       display: flex; align-items: center; justify-content: center; gap: 12px;
@@ -145,19 +126,16 @@
     .oauth-logged-as .info .switch { font-size: 0.75rem; color: var(--accent); cursor: pointer; font-weight: 600; }
     .oauth-logged-as .info .switch:hover { text-decoration: underline; }
 
-    /* ── SUCCESS/CANCEL ── */
     .result-screen { text-align: center; padding: 10px 0; }
     .result-screen .icon { font-size: 3.5rem; margin-bottom: 14px; }
     .result-screen h2 { font-family: 'Lilita One', cursive; font-size: 1.4rem; margin-bottom: 8px; }
     .result-screen p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
 
-    /* ── SPINNER ── */
     .spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .footer-text { text-align: center; color: var(--muted); font-size: 0.72rem; margin-top: 18px; position: relative; z-index: 1; }
 
-    /* ── ANIMATED BLOBS (din FirstLogonAnim) ── */
     @keyframes circle1Path {
       0%   { transform: translate(0vw, 0vh);   width: 30vw; height: 30vw; }
       100% { transform: translate(0vw, -35vh); width: 80vw; height: 80vw; }
@@ -201,9 +179,6 @@
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 1: LOGIN / REGISTER
-══════════════════════════════════════════ -->
 <div class="screen active" id="screenAuth">
   <div class="card">
     <div class="logo">
@@ -236,6 +211,10 @@
         <input type="text" id="regUsername" placeholder="Choose a username" autocomplete="username" />
       </div>
       <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="your@email.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
         <label>Password</label>
         <input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password" />
       </div>
@@ -248,12 +227,8 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 2: OAUTH AUTHORIZE
-══════════════════════════════════════════ -->
 <div class="screen" id="screenOAuth">
   <div class="card">
-    <!-- App arrow visual -->
     <div class="oauth-arrow">
       <div class="oauth-app-badge">
         <div class="icon">ST</div>
@@ -269,7 +244,6 @@
     <div class="oauth-title">Authorize StumbleTime</div>
     <div class="oauth-subtitle">The game wants to access your <span>StumbleTime account</span></div>
 
-    <!-- Logged in as -->
     <div class="oauth-logged-as">
       <div class="avatar" id="oauthAvatar">?</div>
       <div class="info">
@@ -278,10 +252,10 @@
       </div>
     </div>
 
-    <!-- Permissions -->
     <div class="oauth-perms">
       <div class="oauth-perms-title">This will allow StumbleTime to:</div>
-      <div class="perm-item"><span class="perm-icon">👤</span><span class="perm-text">Access your username and role</span></div>
+      <div class="perm-item"><span class="perm-icon">👤</span><span class="perm-text">Access your username and profile</span></div>
+      <div class="perm-item"><span class="perm-icon">📧</span><span class="perm-text">View your email address</span></div>
       <div class="perm-item"><span class="perm-icon">🎮</span><span class="perm-text">Identify you in-game</span></div>
       <div class="perm-item"><span class="perm-icon">🔒</span><span class="perm-text">Keep you signed in during your session</span></div>
     </div>
@@ -291,9 +265,6 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 3: SUCCESS
-══════════════════════════════════════════ -->
 <div class="screen" id="screenSuccess">
   <div class="card">
     <div class="result-screen">
@@ -304,9 +275,6 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 4: CANCELLED
-══════════════════════════════════════════ -->
 <div class="screen" id="screenCancel">
   <div class="card">
     <div class="result-screen">
@@ -321,7 +289,7 @@
 <div class="circle2"></div>
 <div class="circle3"></div>
 
-<div class="footer-text">StumbleTime &bull; noreply@stumblemod.mooo.com</div>
+<div class="footer-text">StumbleTime &bull; Secure Login</div>
 
 <script>
   const API = 'https://prmpsdev-idkprollyaapi.hf.space';
@@ -330,13 +298,11 @@
   let _token = null;
   let _username = null;
 
-  // ── Screens ────────────────────────────────
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
   }
 
-  // ── Tabs ───────────────────────────────────
   function switchTab(tab) {
     document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
     document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
@@ -350,55 +316,91 @@
     const el = document.getElementById('authAlert');
     el.textContent = msg;
     el.className = `alert show ${type}`;
+    console.error('[DEBUG]', msg);
   }
+  
   function hideAlert() { document.getElementById('authAlert').className = 'alert'; }
 
   function setLoading(btnId, loading, text) {
     const btn = document.getElementById(btnId);
+    if (!btn) return;
     btn.disabled = loading;
     btn.innerHTML = loading ? `<span class="spinner"></span>${text}` : text;
   }
 
-  // ── Login ──────────────────────────────────
+  function isValidEmail(email) {
+    return /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(email);
+  }
+
   async function doLogin() {
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
+    
     if (!username || !password) return showAlert('Fill in all fields.');
-    setLoading('loginBtn', true, 'Logging in...'); hideAlert();
+    
+    setLoading('loginBtn', true, 'Logging in...'); 
+    hideAlert();
+    
     try {
       const res = await fetch(`${API}/auth/login`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
+      
       const data = await res.json();
-      if (!res.ok) return showAlert(typeof data.detail === 'string' ? data.detail : 'Incorrect username or password.');
-      goToOAuth(data.token, username);
-    } catch { showAlert('Could not reach server. Try again.'); }
-    finally { setLoading('loginBtn', false, 'Log In'); }
+      
+      if (!res.ok) {
+        return showAlert(data.detail || 'Incorrect username or password.');
+      }
+      
+      // API-ul returnează { token, player: { username, ... } }
+      goToOAuth(data.token, data.player.username);
+    } catch (err) {
+      console.error(err);
+      showAlert('Could not reach server. Try again.');
+    } finally { 
+      setLoading('loginBtn', false, 'Log In'); 
+    }
   }
 
-  // ── Register ───────────────────────────────
   async function doRegister() {
     const username = document.getElementById('regUsername').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
     const password2 = document.getElementById('regPassword2').value;
-    if (!username || !password || !password2) return showAlert('Fill in all fields.');
+    
+    if (!username || !email || !password || !password2) return showAlert('Fill in all fields.');
+    if (!isValidEmail(email)) return showAlert('Please enter a valid email address.');
     if (password !== password2) return showAlert('Passwords do not match.');
     if (password.length < 6) return showAlert('Password must be at least 6 characters.');
-    setLoading('registerBtn', true, 'Creating account...'); hideAlert();
+    if (username.length < 3 || username.length > 20) return showAlert('Username must be 3-20 characters (letters, numbers, underscore).');
+    
+    setLoading('registerBtn', true, 'Creating account...'); 
+    hideAlert();
+    
     try {
       const res = await fetch(`${API}/auth/register`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
       });
+      
       const data = await res.json();
-      if (!res.ok) return showAlert(typeof data.detail === 'string' ? data.detail : 'Username already taken.');
-      goToOAuth(data.token, username);
-    } catch { showAlert('Could not reach server. Try again.'); }
-    finally { setLoading('registerBtn', false, 'Create Account'); }
+      
+      if (!res.ok) {
+        return showAlert(data.detail || 'Username or email already taken.');
+      }
+      
+      goToOAuth(data.token, data.player.username);
+    } catch (err) {
+      console.error(err);
+      showAlert('Could not reach server. Try again.');
+    } finally { 
+      setLoading('registerBtn', false, 'Create Account'); 
+    }
   }
 
-  // ── Go to OAuth screen ─────────────────────
   function goToOAuth(token, username) {
     _token = token;
     _username = username;
@@ -407,8 +409,8 @@
     showScreen('screenOAuth');
   }
 
-  // ── Authorize ──────────────────────────────
   function doAuthorize() {
+    if (!_token) return;
     setLoading('authorizeBtn', true, 'Authorizing...');
     showScreen('screenSuccess');
     setTimeout(() => {
@@ -416,18 +418,19 @@
     }, 800);
   }
 
-  // ── Cancel ─────────────────────────────────
   function doCancel() { showScreen('screenCancel'); }
 
-  // ── Switch account ─────────────────────────
   function switchAccount() {
     _token = null; _username = null;
     document.getElementById('loginUsername').value = '';
     document.getElementById('loginPassword').value = '';
+    document.getElementById('regUsername').value = '';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regPassword').value = '';
+    document.getElementById('regPassword2').value = '';
     showScreen('screenAuth');
   }
 
-  // ── Enter key ──────────────────────────────
   document.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
     const s = document.querySelector('.screen.active')?.id;
