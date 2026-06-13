@@ -12,6 +12,7 @@
       --border: #2e1f42; --accent: #f72585; --accent2: #9b5de5;
       --danger: #ff4f6d; --success: #00e5a0;
       --text: #f0e6ff; --muted: #9175b0; --radius: 14px;
+      --weak: #ff4f6d; --medium: #ffb347; --strong: #00e5a0;
     }
     body {
       background: var(--bg); color: var(--text);
@@ -51,6 +52,32 @@
 
     .form-group { margin-bottom: 14px; }
     label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    
+    /* Password input wrapper for toggle eye */
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-wrapper input {
+      flex: 1;
+      padding-right: 45px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .toggle-password:hover {
+      color: var(--accent);
+    }
+
     input {
       width: 100%; background: var(--bg); border: 1.5px solid var(--border);
       border-radius: var(--radius); padding: 11px 14px; color: var(--text);
@@ -59,6 +86,54 @@
     }
     input:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(155,93,229,0.2); }
     input::placeholder { color: var(--muted); font-weight: 400; }
+
+    /* Password strength bar */
+    .strength-container {
+      margin-top: 6px;
+    }
+    .strength-bar {
+      height: 4px;
+      border-radius: 4px;
+      background: var(--border);
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .strength-fill {
+      width: 0%;
+      height: 100%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+      border-radius: 4px;
+    }
+    .strength-text {
+      font-size: 0.7rem;
+      margin-top: 4px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .strength-label {
+      font-weight: 600;
+    }
+    .password-requirements {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .requirement {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .requirement.valid {
+      color: var(--success);
+    }
+    .requirement.invalid {
+      color: var(--muted);
+    }
 
     .btn-primary {
       width: 100%; padding: 12px; border: none; border-radius: var(--radius);
@@ -200,7 +275,10 @@
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password" />
+        <div class="password-wrapper">
+          <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password" />
+          <button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)">👁</button>
+        </div>
       </div>
       <button class="btn-primary" id="loginBtn" onclick="doLogin()">Log In</button>
     </div>
@@ -216,11 +294,31 @@
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password" />
+        <div class="password-wrapper">
+          <input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password" oninput="updatePasswordStrength()" />
+          <button type="button" class="toggle-password" onclick="togglePassword('regPassword', this)">👁</button>
+        </div>
+        <div class="strength-container" id="strengthContainer">
+          <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+          <div class="strength-text">
+            <span class="strength-label" id="strengthLabel">Password strength</span>
+            <span id="strengthScore">—</span>
+          </div>
+          <div class="password-requirements" id="passwordRequirements">
+            <span class="requirement" id="reqLength">🔒 At least 6 characters</span>
+            <span class="requirement" id="reqUpper">🔠 Uppercase letter</span>
+            <span class="requirement" id="reqLower">🔡 Lowercase letter</span>
+            <span class="requirement" id="reqNumber">🔢 Number</span>
+            <span class="requirement" id="reqSpecial">✨ Special character</span>
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label>Confirm Password</label>
-        <input type="password" id="regPassword2" placeholder="Repeat your password" />
+        <div class="password-wrapper">
+          <input type="password" id="regPassword2" placeholder="Repeat your password" />
+          <button type="button" class="toggle-password" onclick="togglePassword('regPassword2', this)">👁</button>
+        </div>
       </div>
       <button class="btn-primary" id="registerBtn" onclick="doRegister()">Create Account</button>
     </div>
@@ -310,6 +408,7 @@
       b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
     });
     hideAlert();
+    if (tab === 'register') updatePasswordStrength();
   }
 
   function showAlert(msg, type = 'error') {
@@ -330,6 +429,80 @@
 
   function isValidEmail(email) {
     return /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(email);
+  }
+
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁';
+    }
+  }
+
+  function checkPasswordStrength(password) {
+    let score = 0;
+    let checks = {
+      length: password.length >= 6,
+      upper: /[A-Z]/.test(password),
+      lower: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[^A-Za-z0-9]/.test(password)
+    };
+    
+    if (checks.length) score++;
+    if (checks.upper) score++;
+    if (checks.lower) score++;
+    if (checks.number) score++;
+    if (checks.special) score++;
+    
+    let strength = '';
+    let color = '';
+    let percent = 0;
+    
+    if (score === 0) { strength = 'Very Weak'; color = 'var(--weak)'; percent = 10; }
+    else if (score === 1) { strength = 'Weak'; color = 'var(--weak)'; percent = 25; }
+    else if (score === 2) { strength = 'Fair'; color = 'var(--medium)'; percent = 50; }
+    else if (score === 3) { strength = 'Good'; color = 'var(--medium)'; percent = 70; }
+    else if (score === 4) { strength = 'Strong'; color = 'var(--success)'; percent = 90; }
+    else { strength = 'Very Strong'; color = 'var(--success)'; percent = 100; }
+    
+    return { strength, color, percent, checks };
+  }
+
+  function updatePasswordStrength() {
+    const password = document.getElementById('regPassword').value;
+    const result = checkPasswordStrength(password);
+    
+    const fill = document.getElementById('strengthFill');
+    fill.style.width = result.percent + '%';
+    fill.style.backgroundColor = result.color;
+    
+    const label = document.getElementById('strengthLabel');
+    const scoreSpan = document.getElementById('strengthScore');
+    label.textContent = 'Password strength';
+    scoreSpan.textContent = result.strength;
+    scoreSpan.style.color = result.color;
+    
+    // Update requirement indicators
+    const reqs = ['reqLength', 'reqUpper', 'reqLower', 'reqNumber', 'reqSpecial'];
+    const checks = [result.checks.length, result.checks.upper, result.checks.lower, result.checks.number, result.checks.special];
+    const texts = ['At least 6 characters', 'Uppercase letter', 'Lowercase letter', 'Number', 'Special character'];
+    
+    reqs.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (checks[i]) {
+        el.innerHTML = `✅ ${texts[i]}`;
+        el.classList.add('valid');
+        el.classList.remove('invalid');
+      } else {
+        el.innerHTML = `❌ ${texts[i]}`;
+        el.classList.add('invalid');
+        el.classList.remove('valid');
+      }
+    });
   }
 
   async function doLogin() {
@@ -354,7 +527,6 @@
         return showAlert(data.detail || 'Incorrect username or password.');
       }
       
-      // API-ul returnează { token, player: { username, ... } }
       goToOAuth(data.token, data.player.username);
     } catch (err) {
       console.error(err);
@@ -373,8 +545,9 @@
     if (!username || !email || !password || !password2) return showAlert('Fill in all fields.');
     if (!isValidEmail(email)) return showAlert('Please enter a valid email address.');
     if (password !== password2) return showAlert('Passwords do not match.');
-    if (password.length < 6) return showAlert('Password must be at least 6 characters.');
-    if (username.length < 3 || username.length > 20) return showAlert('Username must be 3-20 characters (letters, numbers, underscore).');
+    
+    const strength = checkPasswordStrength(password);
+    if (strength.percent < 50) return showAlert('Please choose a stronger password (at least 6 characters with letters and numbers).');
     
     setLoading('registerBtn', true, 'Creating account...'); 
     hideAlert();
@@ -428,6 +601,7 @@
     document.getElementById('regEmail').value = '';
     document.getElementById('regPassword').value = '';
     document.getElementById('regPassword2').value = '';
+    updatePasswordStrength();
     showScreen('screenAuth');
   }
 
