@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StumbleTime — Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0a14; --surface: #17101f; --surface2: #201530;
+      --border: #2e1f42; --accent: #f72585; --accent2: #9b5de5;
+      --danger: #ff4f6d; --success: #00e5a0;
+      --text: #f0e6ff; --muted: #9175b0; --radius: 14px;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 24px;
+      overflow-x: hidden;
+    }
+
+
+    /* ── SCREENS ── */
+    .screen { display: none; position: relative; z-index: 1; width: 100%; max-width: 420px; }
+    .screen.active { display: block; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 32px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+
+    /* ── LOGO ── */
+    .logo { text-align: center; margin-bottom: 24px; }
+    .logo-title {
+      font-family: 'Lilita One', cursive; font-size: 2rem;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .logo-sub { font-size: 0.75rem; color: var(--muted); margin-top: 3px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+
+    /* ── TABS ── */
+    .tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 24px; }
+    .tab-btn {
+      flex: 1; padding: 9px; border: none; border-radius: 7px; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.88rem;
+      transition: all 0.2s; background: transparent; color: var(--muted);
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: #fff; box-shadow: 0 4px 14px rgba(247,37,133,0.4);
+    }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    input {
+      width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 11px 14px; color: var(--text);
+      font-family: 'Nunito', sans-serif; font-size: 0.93rem; font-weight: 600; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(155,93,229,0.2); }
+    input::placeholder { color: var(--muted); font-weight: 400; }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      width: 100%; padding: 12px; border: none; border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: #fff; font-family: 'Lilita One', cursive; font-size: 1rem;
+      cursor: pointer; margin-top: 6px; transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 20px rgba(247,37,133,0.35);
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-danger {
+      width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius);
+      background: transparent; color: var(--muted); font-family: 'Nunito', sans-serif;
+      font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px;
+      transition: all 0.2s;
+    }
+    .btn-danger:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ── ALERT ── */
+    .alert { border-radius: 10px; padding: 10px 14px; font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; display: none; }
+    .alert.show { display: block; }
+    .alert.error { background: rgba(255,79,109,0.12); border: 1px solid rgba(255,79,109,0.35); color: #ff7a92; }
+    .alert.success { background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.3); color: var(--success); }
+
+    /* ── OAUTH SCREEN ── */
+    .oauth-app-icon {
+      width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 12px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Lilita One', cursive; font-size: 1.6rem; color: #fff;
+    }
+    .oauth-title { font-family: 'Lilita One', cursive; font-size: 1.4rem; text-align: center; margin-bottom: 4px; }
+    .oauth-subtitle { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+    .oauth-subtitle span { color: var(--accent); font-weight: 700; }
+
+    .oauth-arrow {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      margin-bottom: 20px; padding: 14px; background: var(--surface2);
+      border-radius: 12px; border: 1px solid var(--border);
+    }
+    .oauth-app-badge {
+      display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1;
+    }
+    .oauth-app-badge .icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: #fff; font-family: 'Lilita One', cursive;
+    }
+    .oauth-app-badge .name { font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+    .arrow-icon { color: var(--muted); font-size: 1.2rem; }
+
+    .oauth-perms { margin-bottom: 20px; }
+    .oauth-perms-title { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .perm-item {
+      display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+      background: var(--surface2); border-radius: 9px; margin-bottom: 6px;
+      border: 1px solid var(--border);
+    }
+    .perm-icon { font-size: 1rem; flex-shrink: 0; }
+    .perm-text { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+
+    .oauth-logged-as {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      background: rgba(247,37,133,0.07); border: 1px solid rgba(247,37,133,0.2);
+      border-radius: 10px; margin-bottom: 20px;
+    }
+    .oauth-logged-as .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.85rem; color: #fff; flex-shrink: 0;
+    }
+    .oauth-logged-as .info { flex: 1; }
+    .oauth-logged-as .info .uname { font-weight: 700; font-size: 0.9rem; }
+    .oauth-logged-as .info .switch { font-size: 0.75rem; color: var(--accent); cursor: pointer; font-weight: 600; }
+    .oauth-logged-as .info .switch:hover { text-decoration: underline; }
+
+    /* ── SUCCESS/CANCEL ── */
+    .result-screen { text-align: center; padding: 10px 0; }
+    .result-screen .icon { font-size: 3.5rem; margin-bottom: 14px; }
+    .result-screen h2 { font-family: 'Lilita One', cursive; font-size: 1.4rem; margin-bottom: 8px; }
+    .result-screen p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+
+    /* ── SPINNER ── */
+    .spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .footer-text { text-align: center; color: var(--muted); font-size: 0.72rem; margin-top: 18px; position: relative; z-index: 1; }
+
+    @media (max-width: 480px) {
+      .card { padding: 26px 18px; }
+      .logo-title { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 1: LOGIN / REGISTER
+══════════════════════════════════════════ -->
+<div class="screen active" id="screenAuth">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-title">StumbleTime</div>
+      <div class="logo-sub">Sign in to continue</div>
+    </div>
+
+    <div class="alert" id="authAlert"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Log In</button>
+      <button class="tab-btn" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <div id="loginForm">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="loginUsername" placeholder="Your username" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password" />
+      </div>
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">Log In</button>
+    </div>
+
+    <div id="registerForm" style="display:none">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="regUsername" placeholder="Choose a username" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password" />
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="regPassword2" placeholder="Repeat your password" />
+      </div>
+      <button class="btn-primary" id="registerBtn" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 2: OAUTH AUTHORIZE
+══════════════════════════════════════════ -->
+<div class="screen" id="screenOAuth">
+  <div class="card">
+    <!-- App arrow visual -->
+    <div class="oauth-arrow">
+      <div class="oauth-app-badge">
+        <div class="icon">ST</div>
+        <div class="name">StumbleTime</div>
+      </div>
+      <div class="arrow-icon">⟷</div>
+      <div class="oauth-app-badge">
+        <div class="icon">👤</div>
+        <div class="name">Your Account</div>
+      </div>
+    </div>
+
+    <div class="oauth-title">Authorize StumbleTime</div>
+    <div class="oauth-subtitle">The game wants to access your <span>StumbleTime account</span></div>
+
+    <!-- Logged in as -->
+    <div class="oauth-logged-as">
+      <div class="avatar" id="oauthAvatar">?</div>
+      <div class="info">
+        <div class="uname" id="oauthUsername">—</div>
+        <div class="switch" onclick="switchAccount()">Not you? Switch account</div>
+      </div>
+    </div>
+
+    <!-- Permissions -->
+    <div class="oauth-perms">
+      <div class="oauth-perms-title">This will allow StumbleTime to:</div>
+      <div class="perm-item"><span class="perm-icon">👤</span><span class="perm-text">Access your username and role</span></div>
+      <div class="perm-item"><span class="perm-icon">🎮</span><span class="perm-text">Identify you in-game</span></div>
+      <div class="perm-item"><span class="perm-icon">🔒</span><span class="perm-text">Keep you signed in during your session</span></div>
+    </div>
+
+    <button class="btn-primary" id="authorizeBtn" onclick="doAuthorize()">Authorize</button>
+    <button class="btn-danger" onclick="doCancel()">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 3: SUCCESS
+══════════════════════════════════════════ -->
+<div class="screen" id="screenSuccess">
+  <div class="card">
+    <div class="result-screen">
+      <div class="icon">✅</div>
+      <h2>Authorization successful!</h2>
+      <p>Returning you to the game...<br/>You can close this tab.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 4: CANCELLED
+══════════════════════════════════════════ -->
+<div class="screen" id="screenCancel">
+  <div class="card">
+    <div class="result-screen">
+      <div class="icon">❌</div>
+      <h2 style="color:var(--danger)">Authorization cancelled</h2>
+      <p>You cancelled the login request.<br/>You can close this tab and try again from the game.</p>
+    </div>
+  </div>
+</div>
+
+<div class="footer-text">StumbleTime &bull; noreply@stumblemod.mooo.com</div>
+
+<script>
+  const API = 'https://prmpsdev-idkprollyaapi.hf.space';
+  const CALLBACK = 'http://localhost:7777/auth/callback';
+
+  let _token = null;
+  let _username = null;
+
+  // ── Screens ────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ── Tabs ───────────────────────────────────
+  function switchTab(tab) {
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+    });
+    hideAlert();
+  }
+
+  function showAlert(msg, type = 'error') {
+    const el = document.getElementById('authAlert');
+    el.textContent = msg;
+    el.className = `alert show ${type}`;
+  }
+  function hideAlert() { document.getElementById('authAlert').className = 'alert'; }
+
+  function setLoading(btnId, loading, text) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    btn.innerHTML = loading ? `<span class="spinner"></span>${text}` : text;
+  }
+
+  // ── Login ──────────────────────────────────
+  async function doLogin() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!username || !password) return showAlert('Fill in all fields.');
+    setLoading('loginBtn', true, 'Logging in...'); hideAlert();
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) return showAlert(typeof data.detail === 'string' ? data.detail : 'Incorrect username or password.');
+      goToOAuth(data.token, username);
+    } catch { showAlert('Could not reach server. Try again.'); }
+    finally { setLoading('loginBtn', false, 'Log In'); }
+  }
+
+  // ── Register ───────────────────────────────
+  async function doRegister() {
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const password2 = document.getElementById('regPassword2').value;
+    if (!username || !password || !password2) return showAlert('Fill in all fields.');
+    if (password !== password2) return showAlert('Passwords do not match.');
+    if (password.length < 6) return showAlert('Password must be at least 6 characters.');
+    setLoading('registerBtn', true, 'Creating account...'); hideAlert();
+    try {
+      const res = await fetch(`${API}/auth/register`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) return showAlert(typeof data.detail === 'string' ? data.detail : 'Username already taken.');
+      goToOAuth(data.token, username);
+    } catch { showAlert('Could not reach server. Try again.'); }
+    finally { setLoading('registerBtn', false, 'Create Account'); }
+  }
+
+  // ── Go to OAuth screen ─────────────────────
+  function goToOAuth(token, username) {
+    _token = token;
+    _username = username;
+    document.getElementById('oauthUsername').textContent = username;
+    document.getElementById('oauthAvatar').textContent = username.charAt(0).toUpperCase();
+    showScreen('screenOAuth');
+  }
+
+  // ── Authorize ──────────────────────────────
+  function doAuthorize() {
+    setLoading('authorizeBtn', true, 'Authorizing...');
+    showScreen('screenSuccess');
+    setTimeout(() => {
+      window.location.href = `${CALLBACK}?token=${encodeURIComponent(_token)}`;
+    }, 800);
+  }
+
+  // ── Cancel ─────────────────────────────────
+  function doCancel() { showScreen('screenCancel'); }
+
+  // ── Switch account ─────────────────────────
+  function switchAccount() {
+    _token = null; _username = null;
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    showScreen('screenAuth');
+  }
+
+  // ── Enter key ──────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const s = document.querySelector('.screen.active')?.id;
+    if (s === 'screenAuth') {
+      const loginVisible = document.getElementById('loginForm').style.display !== 'none';
+      loginVisible ? doLogin() : doRegister();
+    } else if (s === 'screenOAuth') doAuthorize();
+  });
+</script>
+</body>
+</html>
