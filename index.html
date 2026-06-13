@@ -103,6 +103,13 @@
 
     .strength-container {
       margin-top: 6px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+    .strength-container.visible {
+      opacity: 1;
+      visibility: visible;
     }
     .strength-bar {
       height: 4px;
@@ -307,7 +314,7 @@
       <div class="form-group">
         <label>Password</label>
         <div class="password-wrapper">
-          <input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password" oninput="toggleEyeVisibility('regPassword', 'toggleRegEye'); updatePasswordStrength()" />
+          <input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password" oninput="handlePasswordInput()" />
           <button type="button" class="toggle-password" id="toggleRegEye" onclick="togglePassword('regPassword', this)"></button>
         </div>
         <div class="strength-container" id="strengthContainer">
@@ -413,43 +420,53 @@
   const eyeClosedSVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>';
 
   function initializeEyeButtons() {
-    // Set initial SVG and visibility based on input value
     const eyeButtons = ['toggleLoginEye', 'toggleRegEye', 'toggleRegEye2'];
     eyeButtons.forEach(id => {
       const btn = document.getElementById(id);
-      if (btn) {
-        if (!btn.innerHTML) {
-          btn.innerHTML = eyeOpenSVG;
-        }
-        // Get corresponding input
-        let inputId = '';
-        if (id === 'toggleLoginEye') inputId = 'loginPassword';
-        else if (id === 'toggleRegEye') inputId = 'regPassword';
-        else if (id === 'toggleRegEye2') inputId = 'regPassword2';
-        
-        const input = document.getElementById(inputId);
-        if (input && input.value.length > 0) {
-          btn.classList.add('visible');
-        } else {
-          btn.classList.remove('visible');
-        }
+      if (btn && !btn.innerHTML) {
+        btn.innerHTML = eyeOpenSVG;
       }
     });
+    // Check inputs for visibility
+    toggleEyeVisibility('loginPassword', 'toggleLoginEye');
+    toggleEyeVisibility('regPassword', 'toggleRegEye');
+    toggleEyeVisibility('regPassword2', 'toggleRegEye2');
+    // Handle strength container visibility
+    handleStrengthVisibility();
   }
 
   function toggleEyeVisibility(inputId, btnId) {
     const input = document.getElementById(inputId);
     const btn = document.getElementById(btnId);
-    if (input.value.length > 0) {
-      btn.classList.add('visible');
-    } else {
-      btn.classList.remove('visible');
-      // Also reset to password type and eye open icon when empty
-      if (input.type === 'text') {
-        input.type = 'password';
-        btn.innerHTML = eyeOpenSVG;
+    if (input && btn) {
+      if (input.value.length > 0) {
+        btn.classList.add('visible');
+      } else {
+        btn.classList.remove('visible');
+        if (input.type === 'text') {
+          input.type = 'password';
+          btn.innerHTML = eyeOpenSVG;
+        }
       }
     }
+  }
+
+  function handleStrengthVisibility() {
+    const password = document.getElementById('regPassword');
+    const container = document.getElementById('strengthContainer');
+    if (password && container) {
+      if (password.value.length > 0) {
+        container.classList.add('visible');
+        updatePasswordStrength();
+      } else {
+        container.classList.remove('visible');
+      }
+    }
+  }
+
+  function handlePasswordInput() {
+    toggleEyeVisibility('regPassword', 'toggleRegEye');
+    handleStrengthVisibility();
   }
 
   function togglePassword(inputId, btn) {
@@ -475,10 +492,10 @@
       b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
     });
     hideAlert();
-    if (tab === 'register') {
-      updatePasswordStrength();
-    }
-    setTimeout(initializeEyeButtons, 10);
+    setTimeout(() => {
+      handleStrengthVisibility();
+      initializeEyeButtons();
+    }, 10);
   }
 
   function showAlert(msg, type = 'error') {
@@ -657,9 +674,11 @@
     document.getElementById('regEmail').value = '';
     document.getElementById('regPassword').value = '';
     document.getElementById('regPassword2').value = '';
-    updatePasswordStrength();
     showScreen('screenAuth');
-    setTimeout(initializeEyeButtons, 10);
+    setTimeout(() => {
+      handleStrengthVisibility();
+      initializeEyeButtons();
+    }, 10);
   }
 
   document.addEventListener('keydown', e => {
