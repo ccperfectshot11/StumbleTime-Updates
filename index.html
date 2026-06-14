@@ -265,9 +265,41 @@
       background: radial-gradient(50% 50% at 50% 50%, rgba(123, 44, 191, 0.5) 15.62%, rgba(123, 44, 191, 0) 100%);
     }
 
+    .otp-inputs {
+      display: flex; gap: 8px; justify-content: center; margin: 24px 0 8px;
+    }
+    .otp-input {
+      width: 44px; height: 54px; text-align: center;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 10px; color: var(--text);
+      font-family: 'Lilita One', cursive; font-size: 1.4rem;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+      caret-color: var(--accent);
+    }
+    .otp-input:focus {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 3px rgba(155,93,229,0.2);
+    }
+    .otp-input.filled {
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+    .otp-resend {
+      text-align: center; font-size: 0.78rem; color: var(--muted); margin-top: 10px;
+    }
+    .otp-resend span {
+      color: var(--accent); cursor: pointer; font-weight: 700;
+    }
+    .otp-resend span:hover { text-decoration: underline; }
+    .otp-timer {
+      color: var(--muted); font-weight: 600;
+    }
+
     @media (max-width: 480px) {
       .card { padding: 26px 18px; }
       .logo-title { font-size: 1.7rem; }
+      .otp-input { width: 36px; height: 46px; font-size: 1.2rem; }
+      .otp-inputs { gap: 5px; }
     }
   </style>
 </head>
@@ -341,6 +373,41 @@
       </div>
       <button class="btn-primary" id="registerBtn" onclick="doRegister()">Create Account</button>
     </div>
+  </div>
+</div>
+
+<div class="screen" id="screenVerify">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-title">StumbleTime</div>
+      <div class="logo-sub">Email verification</div>
+    </div>
+
+    <div class="alert" id="verifyAlert"></div>
+
+    <p style="text-align:center; color:var(--muted); font-size:0.85rem; line-height:1.6; margin-bottom:4px;">
+      We sent an 8-digit code to<br/>
+      <strong id="verifyEmailDisplay" style="color:var(--text)">your email</strong>
+    </p>
+
+    <div class="otp-inputs" id="otpInputs">
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp0" />
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp1" />
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp2" />
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp3" />
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp4" />
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp5" />
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp6" />
+      <input class="otp-input" type="text" inputmode="numeric" maxlength="1" id="otp7" />
+    </div>
+
+    <div class="otp-resend">
+      <span id="resendTimer" class="otp-timer">Resend in <span id="timerCount">60</span>s</span>
+      <span id="resendBtn" style="display:none" onclick="resendCode()">Resend code</span>
+    </div>
+
+    <button class="btn-primary" id="verifyBtn" onclick="doVerify()" style="margin-top:20px">Verify</button>
+    <button class="btn-danger" onclick="switchAccount()">Back to Login</button>
   </div>
 </div>
 
@@ -638,12 +705,128 @@
         return showAlert(data.detail || 'Username or email already taken.');
       }
       
-      goToOAuth(data.token, data.player.username);
+      _pendingToken = data.token;
+      _pendingUsername = data.player.username;
+      _pendingEmail = email;
+      goToVerify(email);
     } catch (err) {
       console.error(err);
       showAlert('Could not reach server. Try again.');
     } finally { 
       setLoading('registerBtn', false, 'Create Account'); 
+    }
+  }
+
+  let _pendingToken = null;
+  let _pendingUsername = null;
+  let _pendingEmail = null;
+  let _resendInterval = null;
+
+  function goToVerify(email) {
+    document.getElementById('verifyEmailDisplay').textContent = email;
+    for (let i = 0; i < 8; i++) {
+      const inp = document.getElementById('otp' + i);
+      inp.value = '';
+      inp.classList.remove('filled');
+    }
+    document.getElementById('verifyAlert').className = 'alert';
+    showScreen('screenVerify');
+    document.getElementById('otp0').focus();
+    startResendTimer();
+    initOtpInputs();
+  }
+
+  function startResendTimer() {
+    clearInterval(_resendInterval);
+    let t = 60;
+    document.getElementById('timerCount').textContent = t;
+    document.getElementById('resendTimer').style.display = 'inline';
+    document.getElementById('resendBtn').style.display = 'none';
+    _resendInterval = setInterval(() => {
+      t--;
+      document.getElementById('timerCount').textContent = t;
+      if (t <= 0) {
+        clearInterval(_resendInterval);
+        document.getElementById('resendTimer').style.display = 'none';
+        document.getElementById('resendBtn').style.display = 'inline';
+      }
+    }, 1000);
+  }
+
+  function resendCode() {
+    document.getElementById('resendBtn').style.display = 'none';
+    startResendTimer();
+    const va = document.getElementById('verifyAlert');
+    va.textContent = 'A new code has been sent!';
+    va.className = 'alert show success';
+    setTimeout(() => { va.className = 'alert'; }, 3000);
+  }
+
+  function initOtpInputs() {
+    for (let i = 0; i < 8; i++) {
+      const inp = document.getElementById('otp' + i);
+      inp.oninput = function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value) {
+          this.classList.add('filled');
+          if (i < 7) document.getElementById('otp' + (i + 1)).focus();
+          else this.blur();
+        } else {
+          this.classList.remove('filled');
+        }
+      };
+      inp.onkeydown = function(e) {
+        if (e.key === 'Backspace' && !this.value && i > 0) {
+          document.getElementById('otp' + (i - 1)).focus();
+        }
+        if (e.key === 'Enter') doVerify();
+      };
+      inp.onpaste = function(e) {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 8);
+        for (let j = 0; j < pasted.length && (i + j) < 8; j++) {
+          const target = document.getElementById('otp' + (i + j));
+          target.value = pasted[j];
+          target.classList.add('filled');
+        }
+        const next = Math.min(i + pasted.length, 7);
+        document.getElementById('otp' + next).focus();
+      };
+    }
+  }
+
+  async function doVerify() {
+    let code = '';
+    for (let i = 0; i < 8; i++) code += document.getElementById('otp' + i).value;
+    if (code.length < 8) {
+      const va = document.getElementById('verifyAlert');
+      va.textContent = 'Please enter the full 8-digit code.';
+      va.className = 'alert show error';
+      return;
+    }
+    setLoading('verifyBtn', true, 'Verifying...');
+    document.getElementById('verifyAlert').className = 'alert';
+    try {
+      const res = await fetch(`${API}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: code, email: _pendingEmail })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const va = document.getElementById('verifyAlert');
+        va.textContent = data.detail || 'Invalid or expired code.';
+        va.className = 'alert show error';
+        return;
+      }
+      clearInterval(_resendInterval);
+      goToOAuth(_pendingToken, _pendingUsername);
+    } catch (err) {
+      const va = document.getElementById('verifyAlert');
+      va.textContent = 'Could not reach server. Try again.';
+      va.className = 'alert show error';
+    } finally {
+      setLoading('verifyBtn', false, 'Verify');
     }
   }
 
@@ -668,6 +851,8 @@
 
   function switchAccount() {
     _token = null; _username = null;
+    _pendingToken = null; _pendingUsername = null; _pendingEmail = null;
+    clearInterval(_resendInterval);
     document.getElementById('loginUsername').value = '';
     document.getElementById('loginPassword').value = '';
     document.getElementById('regUsername').value = '';
